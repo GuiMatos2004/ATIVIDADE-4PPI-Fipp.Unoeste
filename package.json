@@ -1,0 +1,30 @@
+{
+  "name": "atividade-3ppi--fipp.unoeste",
+  "version": "1.0.0",
+  "description": "atividade 3ppi",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GuiMatos2004/ATIVIDADE-3PPI--Fipp.Unoeste.git"
+  },
+  "keywords": [
+    "HTTP",
+    "JavaScript",
+    "Node"
+  ],
+  "author": "Guilherme de Matos",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GuiMatos2004/ATIVIDADE-3PPI--Fipp.Unoeste/issues"
+  },
+  "homepage": "https://github.com/GuiMatos2004/ATIVIDADE-3PPI--Fipp.Unoeste#readme",
+  "dependencies": {
+    "express": "^4.21.1",
+    "nodemon": "^3.1.7"
+  }
+}
