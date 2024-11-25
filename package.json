@@ -1,5 +1,5 @@
 {
-  "name": "atividade-3ppi--fipp.unoeste",
+  "name": "atividade-4ppi--fipp.unoeste",
   "version": "1.0.0",
   "description": "atividade 3ppi",
   "main": "index.js",
@@ -26,5 +26,6 @@
   "dependencies": {
     "express": "^4.21.1",
     "nodemon": "^3.1.7"
-  }
+  },
+  "devDependencies": {}
 }

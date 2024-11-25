@@ -1,387 +1,215 @@
 import express from 'express';
 
-
 const app = express();
-//configurar aplicação para receber os dados do form
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true })); // Para trabalhar com dados de formulário
+app.use(express.json()); // Para trabalhar com JSON
 
 const porta = 3000;
 const host = '0.0.0.0';
 
-var listaProduto = [];//Lista para armazenar alunos cadastrados
+// Dados de exemplo para autenticação
+const usuarios = [{ username: "admin", password: "1234" }];
 
+// Lista de produtos
+var listaProduto = [];
 
-function cadastroProdutoView(req, resp) {
+// Função para exibir a página de login
+function loginView(req, resp) {
     resp.send(`
+        <html>
+            <head>
+                <title>Login</title>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+            </head>
+            <body>
+                <div class="container" style="margin-top: 50px;">
+                    <h1 class="text-center">Login</h1>
+                    <form method="POST" action="/login">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Usuário</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Senha</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Entrar</button>
+                    </form>
+                </div>
+            </body>
+        </html>
+    `);
+}
+
+// Função para autenticar o usuário
+function autenticar(req, resp) {
+    const { username, password } = req.body;
+
+    const usuarioValido = usuarios.find(
+        (u) => u.username === username && u.password === password
+    );
+
+    if (usuarioValido) {
+        resp.redirect('/menu');
+    } else {
+        resp.send(`
             <html>
                 <head>
-                    <title>Cadastro de Produtos</title>
-                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-                    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #e3f2fd; /* Azul claro */
-            color: #343a40;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        .container {
-            max-width: 800px;
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border: 2px solid #1976d2; /* Azul escuro para borda */
-            background-color: #eaf4fb; /* Azul bem claro dentro do formulário */
-        }
-
-        h1 {
-            font-size: 2rem;
-            color: #1976d2; /* Azul escuro */
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            font-weight: bold;
-            color: #1976d2; /* Azul escuro */
-        }
-
-        .form-control, .form-select {
-            border-radius: 5px;
-            padding: 10px;
-            border: 1px solid #1976d2; /* Azul escuro para inputs */
-            background-color: #ffffff;
-        }
-
-        .input-group-text {
-            background-color: #1976d2; /* Azul escuro */
-            color: #ffffff;
-            border-radius: 5px 0 0 5px;
-            border-right: 0;
-        }
-
-        .btn-primary {
-            background-color: #1976d2; /* Azul escuro */
-            border-color: #1976d2;
-            border-radius: 5px;
-            padding: 10px 20px;
-            font-size: 1rem;
-        }
-
-        .btn-primary:hover {
-            background-color: #1565c0; /* Azul ainda mais escuro no hover */
-            border-color: #1565c0;
-        }
-    </style>
+                    <title>Erro no Login</title>
                 </head>
-                <body>
-                    <div class="container text-center   ">
-                        <h1 class="mb-3">Cadastro de Produtos</h1>
-                        <form method="POST" action="/cadastrarProduto" class="border p-3 row g-3" novalidate>
-                            <div class="col-md-4">
-                                <label for="nomeProduto" class="form-label">Nome Produto</label>
-                                  <input type="text" class="form-control" id="nomeProduto" name="nomeProduto" placeholder="Digite seu nome">
-                             </div>
-                            <div class="col-md-4">
-                                <label for="Categoria" class="form-label">Categoria</label>
-                                    <input type="text" class="form-control" id="Categoria" name="Categoria" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="Código" class="form-label">Código</label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text" id="inputGroupPrepend"></span>
-                                    <input type="text" class="form-control" id="Código" name="Código" required>
-                                </div>
-                            </div>   
-                             <div class="col-md-6">
-                                 <label for="Modelo" class="form-label">Modelo</label>
-                                    <input type="text" class="form-control" id="Modelo" name="Modelo" required>
-                            </div>
-                             <div class="col-md-3">
-                                <label for="Cor" class="form-label">Cor</label>
-                                <select class="form-select" id="Cor" name="Cor" required>
-                                    <option selected disabled value="">Escolha...</option>
-                                    <option value="red">Vermelho</option>
-                                    <option value="green">Verde</option>
-                                    <option value="blue">Azul</option>
-                                    <option value="yellow">Amarelo</option>
-                                    <option value="purple">Roxo</option>
-                            </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="Cep" class="form-label">Cep</label>
-                                <input type="text" class="form-control" id="Cep" name="Cep" required>
-                            </div>
-                            <div class="col-12">
-                                <button class="btn btn-primary" type="submit">Cadastrar</button>
-                            </div>
-                            </form>
-                            </div>
-                 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+                <body style="text-align: center; margin-top: 20%;">
+                    <h1 style="color: red;">Credenciais inválidas!</h1>
+                    <a class="btn btn-primary" href="/login">Tentar Novamente</a>
                 </body>
             </html>
-        
-        
         `);
-
+    }
 }
 
-function menuView(res, resp) {
+// Função para exibir o menu
+function menuView(req, resp) {
     resp.send(`
-         <html>
-                <head>
-                    <title>Cadastro de Produtos</title>
-                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-                </head>
-                <body>
-                    <nav class="navbar navbar-expand-lg bg-body-tertiary">
-                        <div class="container-fluid">
-                            <a class="navbar-brand" href="#">MENU</a>
-                            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-                            <div class="navbar-nav">
-                                <a class="nav-link active" aria-current="page" href="/cadastrarProduto">cadastrar Produto</a>
-                            </div>
-                            </div>
-                        </div>
-                        </nav>
-                        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-                    </body>
-                        </html>
-        `)
+        <html>
+            <head>
+                <title>Menu</title>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+            </head>
+            <body>
+                <div class="container" style="margin-top: 50px;">
+                    <h1>Menu</h1>
+                    <a href="/cadastrarProduto" class="btn btn-primary">Cadastrar Produto</a>
+                    <a href="/listarProdutos" class="btn btn-secondary">Listar Produtos</a>
+                </div>
+            </body>
+        </html>
+    `);
 }
 
+// Função para exibir a página de cadastro de produtos
+function cadastroProdutoView(req, resp) {
+    resp.send(`
+        <html>
+            <head>
+                <title>Cadastro de Produtos</title>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+            </head>
+            <body>
+                <div class="container" style="margin-top: 50px;">
+                    <h1>Cadastro de Produtos</h1>
+                    <form method="POST" action="/cadastrarProduto">
+                        <div class="mb-3">
+                            <label for="nomeProduto" class="form-label">Nome Produto</label>
+                            <input type="text" class="form-control" id="nomeProduto" name="nomeProduto" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="Categoria" class="form-label">Categoria</label>
+                            <input type="text" class="form-control" id="Categoria" name="Categoria" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="Código" class="form-label">Código</label>
+                            <input type="text" class="form-control" id="Código" name="Código" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="Modelo" class="form-label">Modelo</label>
+                            <input type="text" class="form-control" id="Modelo" name="Modelo" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="Cor" class="form-label">Cor</label>
+                            <select class="form-select" id="Cor" name="Cor">
+                                <option value="Vermelho">Vermelho</option>
+                                <option value="Verde">Verde</option>
+                                <option value="Azul">Azul</option>
+                                <option value="Amarelo">Amarelo</option>
+                                <option value="Roxo">Roxo</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="Cep" class="form-label">Cep</label>
+                            <input type="text" class="form-control" id="Cep" name="Cep" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Cadastrar</button>
+                    </form>
+                </div>
+            </body>
+        </html>
+    `);
+}
+
+// Função para cadastrar um produto
 function cadastrarProduto(req, resp) {
-    const nomeProduto = req.body.nomeProduto;
-    const Categoria = req.body.Categoria;
-    const Código = req.body.Código;
-    const Modelo = req.body.Modelo;
-    const Cor = req.body.Cor;
-    const Cep = req.body.Cep;
+    const { nomeProduto, Categoria, Código, Modelo, Cor, Cep } = req.body;
 
-   
+    listaProduto.push({ nomeProduto, Categoria, Código, Modelo, Cor, Cep });
+    resp.send(`
+        <html>
+            <head>
+                <title>Produto Cadastrado</title>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+            </head>
+            <body>
+                <div class="container" style="margin-top: 50px;">
+                    <h1>Produto Cadastrado com Sucesso!</h1>
+                    <a href="/cadastrarProduto" class="btn btn-primary">Cadastrar Novo Produto</a>
+                    <a href="/menu" class="btn btn-secondary">Voltar ao Menu</a>
+                </div>
+            </body>
+        </html>
+    `);
+}
 
-    if (nomeProduto && Categoria && Código && Modelo && Cor && Cep) {
+// Função para listar os produtos
+function listarProdutos(req, resp) {
+    let listaHTML = listaProduto.map(p => `
+        <tr>
+            <td>${p.nomeProduto}</td>
+            <td>${p.Categoria}</td>
+            <td>${p.Código}</td>
+            <td>${p.Modelo}</td>
+            <td>${p.Cor}</td>
+            <td>${p.Cep}</td>
+        </tr>
+    `).join('');
 
-        const Produto = { nomeProduto, Categoria, Código, Modelo, Cor, Cep };
-
-        listaProduto.push(Produto);
-        resp.write(`
+    resp.send(`
         <html>
             <head>
                 <title>Lista de Produtos</title>
-                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-                <meta charset="utf-8">
-            </head>    
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+            </head>
             <body>
-                     <table class="table table-hover">
+                <div class="container" style="margin-top: 50px;">
+                    <h1>Lista de Produtos</h1>
+                    <table class="table table-striped">
                         <thead>
                             <tr>
-                                <th scope="col"> nomeProduto</th>
-                                <th scope="col"> Categoria</th>
-                                <th scope="col"> Código</th>
-                                <th scope="col"> Modelo</th>
-                                <th scope="col"> Cor</th>
-                                <th scope="col"> Cep</th>
+                                <th>Nome</th>
+                                <th>Categoria</th>
+                                <th>Código</th>
+                                <th>Modelo</th>
+                                <th>Cor</th>
+                                <th>Cep</th>
                             </tr>
-                            </thead>
-                            <tbody>`);
-        //para cada produto, devemos criar uma linha na tabela
-        for (var i = 0; i < listaProduto.length; i++) {
-            resp.write(`<tr>
-                                                <td>${listaProduto[i].nomeProduto}</td>
-                                                <td>${listaProduto[i].Categoria}</td>
-                                                <td>${listaProduto[i].Código}</td>
-                                                <td>${listaProduto[i].Modelo}</td>
-                                                <td>${listaProduto[i].Cor}</td>
-                                                <td>${listaProduto[i].Cep}</td>
-                                                
-                                            </tr>
-                                    `)
-        }
-        resp.write(`</tbody>
-                     </table>
-                     <a class="btn btn-primary" href="/cadastrarProduto">Continuar Cadastrando</a>
-                     <a class="btn btn-secondary" href="/">Voltar para o Menu</a>
-                 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+                        </thead>
+                        <tbody>
+                            ${listaHTML}
+                        </tbody>
+                    </table>
+                    <a href="/menu" class="btn btn-secondary">Voltar ao Menu</a>
+                </div>
             </body>
-        </html> 
-        `);
-    }//fim do if de validação
-
-    else{
-        resp.write(`
-            <html>
-                <head>
-                    <title>Cadastro de Produtos</title>
-                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-                    <meta charset="utf-8">
-                    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #e3f2fd; /* Azul claro */
-            color: #343a40;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        .container {
-            max-width: 800px;
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border: 2px solid #1976d2; /* Azul escuro para borda */
-            background-color: #eaf4fb; /* Azul bem claro dentro do formulário */
-        }
-
-        h1 {
-            font-size: 2rem;
-            color: #1976d2; /* Azul escuro */
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            font-weight: bold;
-            color: #1976d2; /* Azul escuro */
-        }
-
-        .form-control, .form-select {
-            border-radius: 5px;
-            padding: 10px;
-            border: 1px solid #1976d2; /* Azul escuro para inputs */
-            background-color: #ffffff;
-        }
-
-        .input-group-text {
-            background-color: #1976d2; /* Azul escuro */
-            color: #ffffff;
-            border-radius: 5px 0 0 5px;
-            border-right: 0;
-        }
-
-        .btn-primary {
-            background-color: #1976d2; /* Azul escuro */
-            border-color: #1976d2;
-            border-radius: 5px;
-            padding: 10px 20px;
-            font-size: 1rem;
-        }
-
-        .btn-primary:hover {
-            background-color: #1565c0; /* Azul ainda mais escuro no hover */
-            border-color: #1565c0;
-        }
-    </style>
-                </head>
-                <body>
-                    <div class="container text-center   ">
-                        <h1 class="mb-3">Cadastro de Produtos</h1>
-                        <form method="POST" action="/cadastrarProduto" class="border p-3 row g-3" novalidate>
-                            <div class="col-md-4">
-                                <label for="nomeProduto" class="form-label">Nome Produto</label>
-                                  <input type="text" class="form-control" id="nomeProduto" name="nomeProduto" placeholder="Digite seu nome" valeu="${nomeProduto}">
-            `);
-            if(!nomeProduto){
-                resp.write(`
-                    <div>
-                        <span><p>Nome obrigatório</p></span>
-                    `)
-            }
-            resp.write(`
-                <div class="col-md-4">
-                                <label for="Categoria" class="form-label">Categoria</label>
-                                    <input type="text" class="form-control" id="Categoria" name="Categoria" value="${Categoria}>
-                            `)
-            if(!Categoria){
-                resp.write(`
-                    <div>
-                        <span><p>Categoria obrigatória</p></span>
-                    `)
-            }
-            resp.write(`
-                    <div class="col-md-4">
-                                <label for="Código" class="form-label">Código</label>
-                                <div class="input-group has-validation">
-                                    <span class="input-group-text" id="inputGroupPrepend"></span>
-                                    <input type="text" class="form-control" id="Código" name="Código" valeu=${Código}>                        
-                `)
-            if(!Código){
-                resp.write(`
-                        <div>
-                        <span><p>Código obrigatório</p></span>
-                    `)
-            }
-            resp.write(`
-                        <div class="col-md-6">
-                                 <label for="Modelo" class="form-label">Modelo</label>
-                                    <input type="text" class="form-control" id="Modelo" name="Modelo" value=${Modelo}>
-                            `)
-            if(!Modelo){
-                resp.write(`
-                        <div>
-                        <span><p>Modelo obrigatório</p></span>
-                    `)
-            }
-            resp.write(`
-                        <div class="col-md-3">
-                                <label for="Cor" class="form-label">Cor</label>
-                                <select class="form-select" id="Cor" name="Cor"> value=${Cor}`)
-                                const cores = [
-                                    { nome: "Vermelho", valor: "red" },
-                                    { nome: "Verde", valor: "green" },
-                                    { nome: "Azul", valor: "blue" },
-                                    { nome: "Amarelo", valor: "yellow" },
-                                    { nome: "Roxo", valor: "purple" }
-                                ];
-                                
-                                for (let cor of cores) {
-                                    if (Cor !== cor.nome) {
-                                        resp.write(`<option selected value="${cor.valor}">${cor.nome}</option>`);
-                                    } else {
-                                        resp.write(`<option value="${cor.valor}">${cor.nome}</option>`);
-                                    }
-                                }
-            resp.write(`</select>
-                
-                <div class="col-md-3">
-                                <label for="Cep" class="form-label">Cep</label>
-                                <input type="text" class="form-control" id="Cep" name="Cep" value=${Cep}>
-                            `)
-            if(!Cep){
-                resp.write(`</div>
-                    <div>
-                    <span><p>CEP obrigatório</p></span>
-                `)
-            }
-            resp.write(`</div>
-                            <div class="col-12">
-                                <button class="btn btn-primary" type="submit">Cadastrar</button>
-                            </div>
-                            </form>
-                            </div>
-                 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-                </body>
-            </html>`)                   
-
-    }//else da validação
-
-    resp.end();//será enviada a resposta
+        </html>
+    `);
 }
 
-app.get('/', menuView);
+// Rotas
+app.get('/login', loginView);
+app.post('/login', autenticar);
+app.get('/menu', menuView);
 app.get('/cadastrarProduto', cadastroProdutoView);
-
 app.post('/cadastrarProduto', cadastrarProduto);
+app.get('/listarProdutos', listarProdutos);
 
+// Inicia o servidor
 app.listen(porta, host, () => {
-    console.log(`Servidor iniciado e em execução no endereço http//${host}:${porta}`);
+    console.log(`Servidor iniciado em http://${host}:${porta}`);
 });
-
-//Iniciando Atividade2PPI
